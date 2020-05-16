@@ -14,110 +14,141 @@ public class LuigiPoker {
 	private static DeckOfCards botHand = new DeckOfCards();
 	private static DeckOfCards playerHand = new DeckOfCards();
 	
-	private static String[] arrayComb = {"High Card", "Pair", "Double Pair", "Three of a kind", "Straight", "Flush", "Full House", "Four of a kind", "Straight Flush", "Royal Flush"};
-	private static List<String> combinations = Arrays.asList(arrayComb);
-	
-	private static String[] arrayDraw = {"Nothing", "Flush Draw", "Bilateral Straight Draw", "Simple Straight Draw", "Royal Flush Draw"};
-	private static List<String> draws = Arrays.asList(arrayDraw);
+	private static String[] combinations = {"High Card", "Pair", "Double Pair", "Three of a kind", "Straight", "Flush", "Full House", "Four of a kind", "Straight Flush", "Royal Flush"};
 	
 	public static void main(String[] args) throws DeckIsEmptyException, DuplicateException {
 		
-		
-		
-		// boolean playerAction = true;
 		boolean gameIsOn = true;
-		boolean playerTurn = false;
+		boolean playerTurn = true;
+		boolean replay = false;
 				
-		int totalPoints = 10;
-		int bet;
+		int playerStack = 10;
+		int botStack = 10;
+		int playerBet;
+		int botBet;
+		int totalBet;
+		
+		int endMenu;
+		
+		int[] combinationPlayer;
+		int[] combinationBot;
+		int drawBot;
 		
     	initDeck();
-		
-//		DeckOfCards handTest = new DeckOfCards();
-//		handTest.addTop(new Card(7, "Heart"));
-//		handTest.addTop(new Card(11, "Heart"));
-//		handTest.addTop(new Card(8, "Spades"));
-//		handTest.addTop(new Card(11, "Heart"));
-//		handTest.addTop(new Card(6, "Diamond"));
-//		
-//		DeckOfCards handTest2 = new DeckOfCards();
-//		handTest2.addTop(new Card(11, "Heart"));
-//		handTest2.addTop(new Card(9, "Heart"));
-//		handTest2.addTop(new Card(8, "Spades"));
-//		handTest2.addTop(new Card(11, "Heart"));
-//		handTest2.addTop(new Card(6, "Diamond"));
-//		
-//		handTest.sortDescend();
-//		handTest2.sortDescend();
-//
-//		System.out.println(highestCard(handTest, handTest2));
-//		
-			
-//		int[] currentCombination = testCombinations(handTest);
-//		int currentDraw = evaluateDraw(handTest);
-//		
-//		System.out.println("Current combination : " + combinations.get(currentCombination[0]));
-//		System.out.println("Draw : " + draws.get(currentDraw));
-//		
-//		handTest.print();
-//		
-//		handTest = changeBotHand(handTest, currentCombination, currentDraw);
-//		
-//		handTest.sortDescend();
-//		handTest.print();
-		
-
 		
 		while (gameIsOn) {
 			
 			deck.shuffle();
-			bet = 0;
+			playerBet = 1;
+			botBet = 0;
 			
 			for (int i=0; i<5; i++) {
 				botHand.addTop(deck.removeTop());
 				playerHand.addTop(deck.removeTop());
 			}
 			
-			int[] combinationBot = testCombinations(botHand);
-			int drawBot = evaluateDraw(botHand);
+			while (playerTurn) {
+				System.out.printf("You have %s coins.\n", playerStack);
+				System.out.println("This is your hand, how many coins do you want to bet ?");
+				playerHand.print();
+				
+				playerBet = inputBet();
+				
+				playerStack -= playerBet;
+				
+				System.out.println("What cards from your hand do you want to change ? \n(type the index separated by a whitespace, or -1 if you want to keep your hand)");
+				
+				changePlayerHand(playerHand);
+				
+				System.out.println("\n");
+				
+				playerTurn = false;
+			}
 			
-			System.out.println("Bot Combination : " + combinations.get(combinationBot[0]));
+			combinationBot = testCombinations(botHand);
+			drawBot = evaluateDraw(botHand);
+			
+			botBet = botBet(combinationBot, drawBot, botStack, botHand);
+			botStack -= botBet;
+			
+			totalBet = botBet + playerBet;
+			
+			System.out.printf("Bot bets %s coins.\n", botBet);
+			
+			System.out.printf("Player bets %s coins ! \n\n", playerBet);
+			
+			changeBotHand(botHand, combinationBot, drawBot);
+			
+			combinationBot = testCombinations(botHand);
+			
+			System.out.println("Bot Combination : " + combinations[combinationBot[0]]);
 			botHand.print();
 			
-			int[] combinationPlayer = testCombinations(playerHand);
+			combinationPlayer = testCombinations(playerHand);
 			
-			System.out.println("Player Combination : " + combinations.get(combinationPlayer[0]));
+			System.out.println("Player Combination : " + combinations[combinationPlayer[0]]);
 			playerHand.print();
 			
 			int winner = bestHand(playerHand, botHand);
 			
 			switch (winner) {
 			case 1:
-				System.out.println("Player wins !");
+				System.out.printf("Player wins %s coins !\n", totalBet*(combinationPlayer[0] + 1)/2);
+				playerStack += totalBet*(combinationPlayer[0] + 1);
 				break;
 			case 2:
-				System.out.println("Bot wins !");
+				System.out.printf("Bot wins %s coins !\n", totalBet*(combinationBot[0]+1)/2);
+				botStack += totalBet*(combinationBot[0] + 1);
 				break;
 			case 0:
 				System.out.println("Draw !");
+				botStack += totalBet/2;
+				playerStack += totalBet/2;
+				break;
 			}
 			
-			while (playerTurn) {
-				System.out.println("This is your hand, do you want to bet supplementary coins ? (0 if not)");
-				playerHand.print();
-				
-				// bet = inputBet() + 1;
-				
-				System.out.println("What cards from your hand do you want to change ? \n(type the index separated by a whitespace, or -1 if you want to keep your hand)");
-				
-				changePlayerHand(playerHand);
-				playerHand.print();
-				
-				playerTurn = false;
-			}		
-			gameIsOn = false;			
-		}	
-
+			for (int i=0; i<5; i++) {
+				deck.addTop(playerHand.removeTop());
+				deck.addTop(botHand.removeTop());
+			}
+			
+			if (botStack <= 0) {
+				System.out.println("Player won the game !");
+				replay = true;
+			} else if (playerStack <= 0) {
+				System.out.println("Bot won the game !");
+				replay = true;
+			}
+			
+			if (replay) {
+				System.out.println("What do you want to do ? \n\t1) Replay \n\t2) Quit the game.");
+				endMenu = inputEndMenu();
+				if (endMenu == 1) {
+					playerStack = 10;
+					botStack = 10;
+					playerTurn = true;
+				} else {
+					gameIsOn = false;
+					// quit();
+				}
+				replay = false;
+			} else {
+				System.out.println("What do you want to do ? \n\t1) Next Round\n\t2) Quit and Save");
+				endMenu = inputEndMenu();
+				if (endMenu == 2) {
+					gameIsOn = false;
+					// quitAndSave();
+				} else playerTurn = true;
+				replay = false;
+			}
+			
+			System.out.println("");
+			for (int i=0; i<40; i++) System.out.print("-");
+			System.out.println("\n");
+			sc.nextLine();
+									
+		}
+		sc.close();
 	}
 	
 	public static void initDeck() {
@@ -138,8 +169,31 @@ public class LuigiPoker {
 				input = sc.nextInt();
 				if (input < 0) {
 					System.out.println("Your bet cannot be negative. Try again.");
-				} else if (input > 4) {
+				} else if (input > 5) {
 					System.out.println("Your bet cannot be above a total of 5 coins");
+				} else {
+					valid = true;
+				}
+				
+			} catch (InputMismatchException e) {
+				sc.next();
+				System.out.println("Your input must be an integer, try again.");
+			}
+		}
+		return input;
+	}
+	
+	public static int inputEndMenu() {
+		int input = 0;
+		boolean valid = false;
+		while (!valid) {
+			try {
+				System.out.print("--> ");
+				input = sc.nextInt();
+				if (input < 1) {
+					System.out.println("This is not an option.");
+				} else if (input > 2) {
+					System.out.println("This is not an option.");
 				} else {
 					valid = true;
 				}
@@ -154,6 +208,11 @@ public class LuigiPoker {
 	
 	public static void changePlayerHand(DeckOfCards playHand) throws DuplicateException, DeckIsEmptyException {
 		int[] index = inputChangeHand();
+		for (int i = 0; i<index.length; i++) {
+			if (index[i] == -1) {
+				return;
+			}
+		}
 		for (int i = index.length - 1; i>=0; i--) deck.addBottom(playHand.removeIndex(index[i]));
 		deck.shuffle();
 		for (int i = index.length - 1; i>=0; i--) playHand.addIndex(index[i], deck.removeTop());
@@ -164,6 +223,8 @@ public class LuigiPoker {
 		String[] input;
 		int[] index = {0};
 		
+		sc.nextLine();
+		
 		while (!valid) {
 			try {
 				System.out.print("--> ");
@@ -173,7 +234,7 @@ public class LuigiPoker {
 				
 				for (int i=0; i<input.length; i++) {
 					index[i] = Integer.parseInt(input[i]);
-					if (index[i] > 4 || index[i] < 0) {
+					if (index[i] > 4 || index[i] < -1) {
 						throw new IndexOutOfBoundsException();
 					}
 				}
@@ -445,6 +506,24 @@ public class LuigiPoker {
 		}
 		
 		return bestHand;
+	}
+	
+	public static int botBet(int[] combination, int draw, int botStack, DeckOfCards hand) {
+		int botBet = 0;
+		
+		if ((combination[0] == 0 && (draw == 0 || draw == 3 || draw == 4)) || (combination[0] == 1 && hand.get(combination[1]).getRank() < 10)) {
+			botBet = 1;
+		} else if ((combination[0] == 0 && (draw == 1 || draw == 2)) || (combination[0] == 1 && hand.get(combination[1]).getRank() >= 10)) {
+			botBet = 2;
+		} else if (combination[0] == 2 || combination[0] == 3) {
+			botBet = 3;
+		} else if (combination[0] == 4 || combination[0] == 5 || combination[0] == 6) {
+			botBet = 4;
+		} else {
+			botBet = 5;
+		}
+		
+		return botBet;
 	}
 	
 	private static boolean hasFlush(DeckOfCards hand) {
