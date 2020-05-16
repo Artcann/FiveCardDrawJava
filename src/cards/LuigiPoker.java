@@ -1,9 +1,21 @@
 package cards;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Scanner;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 public class LuigiPoker {
 	
@@ -16,14 +28,14 @@ public class LuigiPoker {
 	
 	private static String[] combinations = {"High Card", "Pair", "Double Pair", "Three of a kind", "Straight", "Flush", "Full House", "Four of a kind", "Straight Flush", "Royal Flush"};
 	
-	public static void main(String[] args) throws DeckIsEmptyException, DuplicateException {
+	public static void main(String[] args) throws DeckIsEmptyException, DuplicateException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 		
 		boolean gameIsOn = true;
 		boolean playerTurn = true;
 		boolean replay = false;
 				
-		int playerStack = 10;
-		int botStack = 10;
+		int playerStack;
+		int botStack;
 		int playerBet;
 		int botBet;
 		int totalBet;
@@ -35,6 +47,17 @@ public class LuigiPoker {
 		int drawBot;
 		
     	initDeck();
+    	
+    	File file = new File("save.txt");
+    	
+    	if(file.exists()) {
+    		int[] stacks = load();
+    		playerStack = stacks[0];
+    		botStack = stacks[1];
+    	} else {
+    		playerStack = 10;
+    		botStack = 10;
+    	}
 		
 		while (gameIsOn) {
 			
@@ -94,11 +117,11 @@ public class LuigiPoker {
 			switch (winner) {
 			case 1:
 				System.out.printf("Player wins %s coins !\n", totalBet*(combinationPlayer[0] + 1)/2);
-				playerStack += totalBet*(combinationPlayer[0] + 1);
+				playerStack += totalBet*(combinationPlayer[0] + 1)/2;
 				break;
 			case 2:
 				System.out.printf("Bot wins %s coins !\n", totalBet*(combinationBot[0]+1)/2);
-				botStack += totalBet*(combinationBot[0] + 1);
+				botStack += totalBet*(combinationBot[0] + 1)/2;
 				break;
 			case 0:
 				System.out.println("Draw !");
@@ -129,7 +152,7 @@ public class LuigiPoker {
 					playerTurn = true;
 				} else {
 					gameIsOn = false;
-					// quit();
+					quit();
 				}
 				replay = false;
 			} else {
@@ -137,7 +160,7 @@ public class LuigiPoker {
 				endMenu = inputEndMenu();
 				if (endMenu == 2) {
 					gameIsOn = false;
-					// quitAndSave();
+					saveAndQuit(playerStack, botStack);
 				} else playerTurn = true;
 				replay = false;
 			}
@@ -524,6 +547,66 @@ public class LuigiPoker {
 		}
 		
 		return botBet;
+	}
+	
+	public static int[] load() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {
+		File file = new File("save.txt");
+		FileInputStream fis = new FileInputStream(file);
+		
+		byte[] key = "justARandomKey".getBytes("UTF-8");
+		MessageDigest sha = MessageDigest.getInstance("SHA-256");
+		key = sha.digest(key);
+		key = Arrays.copyOf(key, 16);
+		
+		SecretKeySpec aesKey = new SecretKeySpec(key, "AES");
+		
+		Cipher aesCipher = Cipher.getInstance("AES");
+		aesCipher.init(Cipher.DECRYPT_MODE, aesKey);
+		
+		byte[] text = fis.readAllBytes();		
+		
+		String textDecrypted = new String(aesCipher.doFinal(text));
+		System.out.println(textDecrypted);
+		
+		String[] stackString = textDecrypted.split(";");
+		
+		int[] stacks = new int[2];
+		stacks[0] = Integer.parseInt(stackString[0]);
+		stacks[1] = Integer.parseInt(stackString[1]);
+		
+		fis.close();
+		
+		return stacks;
+	}
+	
+	public static void saveAndQuit(int playerStack, int botStack) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+		String text = String.format("%d;%d", playerStack, botStack);
+		byte[] key = "justARandomKey".getBytes("UTF-8");
+		MessageDigest sha = MessageDigest.getInstance("SHA-256");
+		key = sha.digest(key);
+		key = Arrays.copyOf(key, 16);
+		
+		SecretKeySpec aesKey = new SecretKeySpec(key, "AES");
+		
+		File file = new File("save.txt");
+		
+		Cipher aesCipher = Cipher.getInstance("AES");
+		aesCipher.init(Cipher.ENCRYPT_MODE, aesKey);
+		
+		if(!file.exists()) file.createNewFile();
+		FileOutputStream fos = new FileOutputStream("save.txt");
+		
+		byte[] encryptedText = aesCipher.doFinal(text.getBytes("UTF-8"));
+		
+		fos.write(encryptedText);
+		
+		fos.close();
+		
+	}
+	
+	public static void quit() {
+		File file = new File("save.txt");
+		if(file.exists()) file.delete();
 	}
 	
 	private static boolean hasFlush(DeckOfCards hand) {
