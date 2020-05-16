@@ -33,27 +33,25 @@ public class LuigiPoker {
 		
     	initDeck();
 		
-		DeckOfCards handTest = new DeckOfCards();
-		handTest.addTop(new Card(7, "Heart"));
-		handTest.addTop(new Card(11, "Heart"));
-		handTest.addTop(new Card(8, "Spades"));
-		handTest.addTop(new Card(11, "Heart"));
-		handTest.addTop(new Card(6, "Diamond"));
-		
-		DeckOfCards handTest2 = new DeckOfCards();
-		handTest2.addTop(new Card(11, "Heart"));
-		handTest2.addTop(new Card(9, "Heart"));
-		handTest2.addTop(new Card(8, "Spades"));
-		handTest2.addTop(new Card(11, "Heart"));
-		handTest2.addTop(new Card(6, "Diamond"));
-		
-		handTest.sortDescend();
-		handTest2.sortDescend();
-		
-		// j'ajoute une sorte de commentaire de test
-		
-		System.out.println(highestCard(handTest, handTest2));
-		
+//		DeckOfCards handTest = new DeckOfCards();
+//		handTest.addTop(new Card(7, "Heart"));
+//		handTest.addTop(new Card(11, "Heart"));
+//		handTest.addTop(new Card(8, "Spades"));
+//		handTest.addTop(new Card(11, "Heart"));
+//		handTest.addTop(new Card(6, "Diamond"));
+//		
+//		DeckOfCards handTest2 = new DeckOfCards();
+//		handTest2.addTop(new Card(11, "Heart"));
+//		handTest2.addTop(new Card(9, "Heart"));
+//		handTest2.addTop(new Card(8, "Spades"));
+//		handTest2.addTop(new Card(11, "Heart"));
+//		handTest2.addTop(new Card(6, "Diamond"));
+//		
+//		handTest.sortDescend();
+//		handTest2.sortDescend();
+//
+//		System.out.println(highestCard(handTest, handTest2));
+//		
 			
 //		int[] currentCombination = testCombinations(handTest);
 //		int currentDraw = evaluateDraw(handTest);
