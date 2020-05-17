@@ -17,6 +17,10 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
+import exceptions.DeckIsEmptyException;
+import exceptions.DuplicateException;
+import gui.GUI;
+
 public class LuigiPoker {
 	
 	private static Scanner sc = new Scanner(System.in);
@@ -30,8 +34,10 @@ public class LuigiPoker {
 	
 	public static void main(String[] args) throws DeckIsEmptyException, DuplicateException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 		
-		boolean gameIsOn = true;
-		boolean playerTurn = true;
+		GUI gui = new GUI();
+		
+		boolean gameIsOn = false;
+		boolean playerTurn = false;
 		boolean replay = false;
 				
 		int playerStack;
@@ -71,7 +77,7 @@ public class LuigiPoker {
 			}
 			
 			while (playerTurn) {
-				System.out.printf("You have %s coins.\n", playerStack);
+				System.out.printf("You have %s coins.\nBot has %s coins.\n", playerStack, botStack);
 				System.out.println("This is your hand, how many coins do you want to bet ?");
 				playerHand.print();
 				
@@ -173,7 +179,7 @@ public class LuigiPoker {
 		}
 		sc.close();
 	}
-	
+		
 	public static void initDeck() {
 		for (int i=5; i<13; i++) {
 			deck.addTop(new Card(i, "Diamond"));
@@ -566,7 +572,6 @@ public class LuigiPoker {
 		byte[] text = fis.readAllBytes();		
 		
 		String textDecrypted = new String(aesCipher.doFinal(text));
-		System.out.println(textDecrypted);
 		
 		String[] stackString = textDecrypted.split(";");
 		

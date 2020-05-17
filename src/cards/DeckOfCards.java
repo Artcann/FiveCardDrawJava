@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import exceptions.DeckIsEmptyException;
+
 public class DeckOfCards implements Iterable<Card> {
 	
 	protected List<Card> deck = new ArrayList<Card>();

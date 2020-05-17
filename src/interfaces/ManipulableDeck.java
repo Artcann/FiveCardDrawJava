@@ -1,4 +1,6 @@
-package cards;
+package interfaces;
+
+import cards.Card;
 
 public interface ManipulableDeck {
 	public void addTop(Card c);

@@ -3,6 +3,8 @@ package cards;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
+import exceptions.DuplicateException;
+
 public class Standard52Deck extends DeckOfCards {
 	
 	public Standard52Deck() {

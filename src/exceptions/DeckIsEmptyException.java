@@ -1,4 +1,4 @@
-package cards;
+package exceptions;
 
 public class DeckIsEmptyException extends Exception{
 	/**
